@@ -9,7 +9,7 @@ volumes_file = "Выходные данные (CSV)/VOLUMES.TXT"
 # Шаг 1: Получить список файлов CDR
 cdr_files = os.listdir(cdr_directory)
 
-# Шаг 2: Загрузить содержимое файла PREFIXES.TXT
+# Шаг 2: Загрузить содержимое файла PREFIXES.TXT и отсортировать
 prefixes = {}
 with open(prefixes_file, "r") as file:
     reader = csv.reader(file)
@@ -19,6 +19,7 @@ with open(prefixes_file, "r") as file:
             prefix_numbers = row[1].split(",")
             for number in prefix_numbers:
                 prefixes[number] = prefix_zone
+prefixes_sorted = sorted(prefixes.keys(), key=len, reverse=True)
 
 # Шаг 3: Создать пустой список для агрегированных данных о длительности соединений
 aggregated_data = []
@@ -40,13 +41,13 @@ for cdr_file in cdr_files:
                 dialed_prefix = None
 
                 # Поиск префиксной зоны для номера MSISDN
-                for prefix in sorted(prefixes.keys(), key=len, reverse=True):
+                for prefix in prefixes_sorted:
                     if msisdn.startswith(prefix):
                         msisdn_prefix = prefixes[prefix]
                         break
 
                 # Поиск префиксной зоны для номера DIALED
-                for prefix in sorted(prefixes.keys(), key=len, reverse=True):
+                for prefix in prefixes_sorted:
                     if dialed.startswith(prefix):
                         dialed_prefix = prefixes[prefix]
                         break
@@ -72,5 +73,5 @@ for cdr_file in cdr_files:
 
 # Шаг 5: Запись агрегированных данных о длительности соединений в файл VOLUMES.TXT
 with open(volumes_file, "w") as volumes_output:
-    writer = csv.writer(volumes_output)
+    writer = csv.writer(volumes_output, delimiter=',', lineterminator='\n')
     writer.writerows(aggregated_data)
